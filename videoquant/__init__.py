@@ -20,7 +20,26 @@ from .core.pipeline import (
     quantize_dequantize_tensor,
 )
 
+# Diffusers integration (optional dependency)
+try:
+    from .integration import (
+        VideoQuantDiffusersPipeline,
+        VideoQuantDiffusersConfig,
+        QuantizationConfig,
+        ModelQuantizer,
+        apply_quantization_to_model,
+    )
+    DIFFUSERS_AVAILABLE = True
+except ImportError:
+    DIFFUSERS_AVAILABLE = False
+    VideoQuantDiffusersPipeline = None  # type: ignore
+    VideoQuantDiffusersConfig = None  # type: ignore
+    QuantizationConfig = None  # type: ignore
+    ModelQuantizer = None  # type: ignore
+    apply_quantization_to_model = None  # type: ignore
+
 __all__ = [
+    # Core algorithms
     "TPQQuantizer",
     "TPQConfig",
     "SQJLQuantizer",
@@ -39,4 +58,11 @@ __all__ = [
     "create_default_pipeline",
     "quantize_tensor",
     "quantize_dequantize_tensor",
+    # Diffusers integration (if available)
+    "VideoQuantDiffusersPipeline",
+    "VideoQuantDiffusersConfig",
+    "QuantizationConfig",
+    "ModelQuantizer",
+    "apply_quantization_to_model",
+    "DIFFUSERS_AVAILABLE",
 ]
