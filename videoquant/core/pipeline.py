@@ -56,6 +56,51 @@ class VideoQuantConfig:
     enable_sqjl: bool = True  # Enable SQJL residual correction
     enable_mamp: bool = True  # Enable MAMP layer-specific precision
     
+    @classmethod
+    def default_w4a4(cls) -> "VideoQuantConfig":
+        """Create default W4A4 quantization configuration.
+        
+        Returns:
+            VideoQuantConfig with W4A4 settings (4-bit weights, 4-bit activations)
+        """
+        return cls(
+            # TPQ at ~3.5 bits average (close to 4-bit)
+            tpq_target_bits=3.5,
+            tpq_radii_allocation=0.6,
+            tpq_enable_recursive=True,
+            
+            # SQJL enabled for residual correction
+            sqjl_projection_dim=256,
+            sqjl_enable_residual=True,
+            
+            # MAMP with appropriate bit allocations
+            mamp_cross_attention_bits=6,
+            mamp_temporal_attention_bits=5,
+            mamp_self_attention_bits=4,
+            mamp_ffn_bits=3,
+            mamp_timestep_scale_early=1.0,
+            mamp_timestep_scale_late=1.3,
+            
+            # Enable all stages
+            enable_sqjl=True,
+            enable_mamp=True,
+        )
+    
+    @classmethod
+    def fp16_baseline(cls) -> "VideoQuantConfig":
+        """Create FP16 baseline configuration (no quantization).
+        
+        Returns:
+            VideoQuantConfig with quantization disabled
+        """
+        return cls(
+            # Disable quantization stages
+            enable_sqjl=False,
+            enable_mamp=False,
+            # Set high target bits (effectively no compression)
+            tpq_target_bits=16.0,
+        )
+    
     def to_tpq_config(self) -> TPQConfig:
         """Convert to TPQ configuration."""
         return TPQConfig(

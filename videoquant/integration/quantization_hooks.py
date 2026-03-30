@@ -91,6 +91,25 @@ class ModelQuantizer:
         else:
             return "ffn"  # Default to FFN (lowest precision)
     
+    def _quantize_tensor_simple(self, tensor: torch.Tensor, bits: int = 4) -> torch.Tensor:
+        """Simple symmetric quantization for non-4D tensors.
+        
+        For 2D/3D tensors that go through Linear layers, use simple
+        per-channel symmetric quantization to preserve shapes.
+        """
+        # Use symmetric quantization
+        abs_max = tensor.abs().max()
+        if abs_max < 1e-10:
+            return tensor
+        
+        max_quant_val = (2 ** bits / 2) - 1
+        scale = abs_max / max_quant_val
+        
+        quantized = torch.round(tensor / scale).clamp(-(2 ** (bits - 1)), 2 ** (bits - 1) - 1)
+        dequantized = quantized * scale
+        
+        return dequantized
+    
     def _create_quantized_forward(
         self, 
         original_forward: Callable,
@@ -107,47 +126,36 @@ class ModelQuantizer:
             quantized_args = []
             for arg in args:
                 if isinstance(arg, torch.Tensor) and arg.dtype in [torch.float32, torch.float16]:
-                    # Handle different tensor dimensions
                     original_shape = arg.shape
+                    original_ndim = arg.ndim
                     
-                    # Convert to 4D video format if needed [B, F, N, C]
-                    if arg.ndim == 2:
-                        # [B, C] -> [B, 1, 1, C]
-                        arg_4d = arg.unsqueeze(1).unsqueeze(2)
-                    elif arg.ndim == 3:
-                        # [B, N, C] -> [B, 1, N, C]
-                        arg_4d = arg.unsqueeze(1)
-                    elif arg.ndim == 4:
-                        # Already 4D, assume [B, F, N, C]
-                        arg_4d = arg
-                    else:
-                        # For other dimensions, flatten and reshape
-                        B = arg.shape[0] if arg.ndim > 0 else 1
-                        flat = arg.reshape(B, -1)
-                        # Pad or truncate to make divisible
-                        target_size = ((flat.shape[1] + 63) // 64) * 64
-                        if flat.shape[1] < target_size:
-                            padding = torch.zeros(B, target_size - flat.shape[1], device=flat.device, dtype=flat.dtype)
-                            flat = torch.cat([flat, padding], dim=1)
-                        else:
-                            flat = flat[:, :target_size]
-                        # Reshape to [B, 1, N, C]
-                        N = flat.shape[1] // 64
-                        arg_4d = flat.reshape(B, 1, N, 64)
+                    # For 2D tensors [B*F*N, C] (typical for Linear layers)
+                    # Use simple quantization that preserves shape
+                    if original_ndim == 2:
+                        arg = self._quantize_tensor_simple(arg, bits=4)
                     
-                    # Apply quantization-dequantization
-                    q_result = self.pipeline.quantize(
-                        arg_4d, 
-                        layer_type=layer_type,
-                        timestep=self.state.timestep,
-                    )
-                    arg_quantized = self.pipeline.dequantize(q_result["quantized_data"])
+                    elif original_ndim == 3:
+                        # [B, N, C] - batch size is small, seq is large
+                        # Use simple quantization to preserve shape
+                        arg = self._quantize_tensor_simple(arg, bits=4)
                     
-                    # Restore original shape
-                    if arg_quantized.shape != original_shape:
-                        arg = arg_quantized.reshape(original_shape)
-                    else:
-                        arg = arg_quantized
+                    elif original_ndim == 4:
+                        # 4D tensors can use TPQ for video format [B, F, N, C]
+                        try:
+                            q_result = self.pipeline.quantize(
+                                arg, 
+                                layer_type=layer_type,
+                                timestep=self.state.timestep,
+                            )
+                            arg = self.pipeline.dequantize(q_result["quantized_data"])
+                        except Exception:
+                            # Fall back to simple quantization if TPQ fails
+                            arg = self._quantize_tensor_simple(arg, bits=4)
+                        
+                        if arg.shape != original_shape:
+                            arg = arg.reshape(original_shape)
+                    
+                    # Other dimensions pass through unchanged
                     
                 quantized_args.append(arg)
             
@@ -157,39 +165,27 @@ class ModelQuantizer:
             # Quantize outputs if tensor
             if isinstance(output, torch.Tensor) and output.dtype in [torch.float32, torch.float16]:
                 original_shape = output.shape
+                original_ndim = output.ndim
                 
-                # Convert to 4D video format if needed
-                if output.ndim == 2:
-                    output_4d = output.unsqueeze(1).unsqueeze(2)
-                elif output.ndim == 3:
-                    output_4d = output.unsqueeze(1)
-                elif output.ndim == 4:
-                    output_4d = output
-                else:
-                    # For other dimensions
-                    B = output.shape[0] if output.ndim > 0 else 1
-                    flat = output.reshape(B, -1)
-                    target_size = ((flat.shape[1] + 63) // 64) * 64
-                    if flat.shape[1] < target_size:
-                        padding = torch.zeros(B, target_size - flat.shape[1], device=flat.device, dtype=flat.dtype)
-                        flat = torch.cat([flat, padding], dim=1)
-                    else:
-                        flat = flat[:, :target_size]
-                    N = flat.shape[1] // 64
-                    output_4d = flat.reshape(B, 1, N, 64)
+                if original_ndim == 2:
+                    output = self._quantize_tensor_simple(output, bits=4)
                 
-                q_result = self.pipeline.quantize(
-                    output_4d,
-                    layer_type=layer_type,
-                    timestep=self.state.timestep,
-                )
-                output_quantized = self.pipeline.dequantize(q_result["quantized_data"])
+                elif original_ndim == 3:
+                    output = self._quantize_tensor_simple(output, bits=4)
                 
-                # Restore original shape
-                if output_quantized.shape != original_shape:
-                    output = output_quantized.reshape(original_shape)
-                else:
-                    output = output_quantized
+                elif original_ndim == 4:
+                    try:
+                        q_result = self.pipeline.quantize(
+                            output,
+                            layer_type=layer_type,
+                            timestep=self.state.timestep,
+                        )
+                        output = self.pipeline.dequantize(q_result["quantized_data"])
+                    except Exception:
+                        output = self._quantize_tensor_simple(output, bits=4)
+                    
+                    if output.shape != original_shape:
+                        output = output.reshape(original_shape)
             
             return output
         

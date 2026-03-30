@@ -108,9 +108,10 @@ class TPQQuantizer:
         Output shape: [B, F, N, C]
         """
         B, F_half, N, C, _ = paired_tensor.shape
-        # Permute back to [B, F/2, 2, N, C] then reshape
+        # Permute back to [B, F/2, 2, N, C] then reshape to [B, F, N, C]
         tensor = paired_tensor.permute(0, 1, 4, 2, 3)  # [B, F/2, 2, N, C]
-        return tensor.reshape(B, original_frames, N, C)
+        # Flatten the frame dimensions: [B, F_half*2, N, C]
+        return tensor.reshape(B, F_half * 2, N, C)
     
     def recursive_polar_transform(
         self, 
