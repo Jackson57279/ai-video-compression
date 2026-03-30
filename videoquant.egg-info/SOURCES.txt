@@ -1,10 +1,13 @@
 pyproject.toml
 videoquant_design.md
+tests/test_diffusers_integration.py
 tests/test_kernels.py
 tests/test_mamp.py
+tests/test_metrics.py
 tests/test_pipeline.py
 tests/test_sqjl.py
 tests/test_tpq.py
+tests/test_wan21_support.py
 videoquant/__init__.py
 videoquant.egg-info/PKG-INFO
 videoquant.egg-info/SOURCES.txt
@@ -17,3 +20,8 @@ videoquant/core/mamp.py
 videoquant/core/pipeline.py
 videoquant/core/sqjl.py
 videoquant/core/tpq.py
+videoquant/integration/__init__.py
+videoquant/integration/config.py
+videoquant/integration/diffusers_pipeline.py
+videoquant/integration/quantization_hooks.py
+videoquant/metrics/__init__.py
