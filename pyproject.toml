@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "videoquant"
+version = "0.1.0"
+description = "VideoQuant: Extreme Video Model Compression Library"
+readme = "videoquant_design.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "VideoQuant Team"}
+]
+keywords = ["quantization", "video", "diffusion", "transformers", "compression"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "numba>=0.60.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+integration = [
+    "diffusers>=0.25.0",
+    "transformers>=4.35.0",
+    "accelerate>=0.25.0",
+]
+all = [
+    "videoquant[dev,integration]"
+]
+
+[project.urls]
+Homepage = "https://github.com/videoquant/videoquant"
+Repository = "https://github.com/videoquant/videoquant"
+Documentation = "https://github.com/videoquant/videoquant/blob/main/videoquant_design.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["videoquant*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"

@@ -1,0 +1,16 @@
+commands:
+  install: pip install -e .
+  test: pytest tests/ -v --tb=short
+  test-tpq: pytest tests/test_tpq.py -v
+  test-sqjl: pytest tests/test_sqjl.py -v
+  test-mamp: pytest tests/test_mamp.py -v
+  benchmark: python benchmarks/run_all.py
+  generate: python scripts/generate_video.py
+  evaluate: python scripts/evaluate_quality.py
+
+services:
+  # No services required - CPU-only library
+  # Model inference is batch processing, not long-running
+
+# No port allocation needed for library
+# Tests run as batch processes
