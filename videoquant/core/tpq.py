@@ -10,8 +10,7 @@ Implements the TPQ algorithm with:
 """
 
 import torch
-import numpy as np
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Optional, Dict
 from dataclasses import dataclass
 import math
 

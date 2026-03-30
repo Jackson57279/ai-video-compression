@@ -10,6 +10,15 @@ from .core.mamp import (
     create_default_mamp_config,
     get_precision_for_layer,
 )
+from .core.pipeline import (
+    VideoQuantPipeline,
+    VideoQuantConfig,
+    PipelineStats,
+    PipelineStage,
+    create_default_pipeline,
+    quantize_tensor,
+    quantize_dequantize_tensor,
+)
 
 __all__ = [
     "TPQQuantizer",
@@ -23,4 +32,11 @@ __all__ = [
     "LayerType",
     "create_default_mamp_config",
     "get_precision_for_layer",
+    "VideoQuantPipeline",
+    "VideoQuantConfig",
+    "PipelineStats",
+    "PipelineStage",
+    "create_default_pipeline",
+    "quantize_tensor",
+    "quantize_dequantize_tensor",
 ]

@@ -1,5 +1,9 @@
 pyproject.toml
 videoquant_design.md
+tests/test_kernels.py
+tests/test_mamp.py
+tests/test_pipeline.py
+tests/test_sqjl.py
 tests/test_tpq.py
 videoquant/__init__.py
 videoquant.egg-info/PKG-INFO
@@ -8,4 +12,8 @@ videoquant.egg-info/dependency_links.txt
 videoquant.egg-info/requires.txt
 videoquant.egg-info/top_level.txt
 videoquant/core/__init__.py
+videoquant/core/kernels.py
+videoquant/core/mamp.py
+videoquant/core/pipeline.py
+videoquant/core/sqjl.py
 videoquant/core/tpq.py
