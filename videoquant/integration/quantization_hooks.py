@@ -6,12 +6,11 @@ Diffusers model forward passes to apply TPQ+SQJL+MAMP quantization.
 
 import torch
 import torch.nn as nn
-from typing import Optional, Dict, Any, Callable, Union
+from typing import Optional, Dict, Any, Callable
 from dataclasses import dataclass
 import functools
 
 from ..core.pipeline import VideoQuantPipeline, VideoQuantConfig
-from ..core.mamp import LayerType
 
 
 @dataclass

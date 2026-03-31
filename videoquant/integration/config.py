@@ -5,7 +5,7 @@ that can be passed to the Diffusers pipeline.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any
 
 
 @dataclass

@@ -46,7 +46,7 @@ try:
 except ImportError:
     WanPipelineOutput = object
 
-from .config import VideoQuantDiffusersConfig, QuantizationConfig
+from .config import VideoQuantDiffusersConfig
 from .quantization_hooks import ModelQuantizer, apply_quantization_to_model
 
 
