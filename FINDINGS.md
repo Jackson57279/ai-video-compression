@@ -334,5 +334,5 @@ The result is 6-9x compression with cosine similarity > 0.82, enabling practical
 
 ---
 
-*Implementation: [github.com/factory-ai/VideoQuant](https://github.com/factory-ai/VideoQuant)*
-*Contact: research@factory.ai*
+*Implementation: [github.com/Jackson57279/ai-video-compression](https://github.com/Jackson57279/ai-video-compression)*
+*Contact: jacksonwheeler@zapdev.link*
